@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "./node_modules/mocha/bin/mocha test -w"
   },
   "keywords": [
     "game",
@@ -14,6 +14,11 @@
   "license": "ISC",
   "devDependencies": {
     "browserify": "^12.0.1",
-    "mocha": "^2.3.3"
+    "chai": "^3.4.1",
+    "mocha": "^2.3.3",
+    "sinon": "^1.17.2"
+  },
+  "dependencies": {
+    "backbone": "^1.2.3"
   }
 }
