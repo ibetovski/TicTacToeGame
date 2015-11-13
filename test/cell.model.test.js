@@ -32,4 +32,11 @@ describe('Cell', function() {
     cell.fill(0);
     expect(cell.get('sign')).to.equal(0);
   });
+
+  it('should not override existing sign with another one', function() {
+    expect(cell.get('isEmpty')).to.be.ok;
+    cell.fill(0);
+    cell.fill(1);
+    expect(cell.get('sign')).to.equal(0);
+  });
 });

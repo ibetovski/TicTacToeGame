@@ -2,7 +2,8 @@ var Backbone = require('Backbone');
 
 var Cell = Backbone.Model.extend({
   defaults: {
-    "isEmpty": true
+    "isEmpty": true,
+    "sign": null
   },
 
   /**
@@ -10,8 +11,10 @@ var Cell = Backbone.Model.extend({
    * @return {Void}
    */
   fill: function(sign) {
-    this.set('isEmpty', false);
-    this.set('sign', sign);
+    if (this.get('isEmpty')) {
+      this.set('isEmpty', false);
+      this.set('sign', sign);
+    }
   }
 });
 

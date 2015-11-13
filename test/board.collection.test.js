@@ -19,6 +19,10 @@ describe('Board', function() {
       board.hasWinner.restore();
     }
 
+    if (typeof board.switchPlayers.restore === 'function') {
+      board.switchPlayers.restore();
+    }
+
     board = null;
   });
 
@@ -143,5 +147,21 @@ describe('Board', function() {
     expect(board.getDiagonal(2)).not.to.be.ok;
     board.get(6).fill();
     expect(board.getDiagonal(2)).to.be.ok;
+  });
+
+  it('should call switchPlayers function after every turn', function() {
+    sinon.stub(board, 'switchPlayers');
+    expect(board.get(0).get('isEmpty')).to.be.ok;
+    board.fill(0);
+    expect(board.get(0).get('isEmpty')).not.to.be.ok;
+    expect(board.get(0).get('sign')).to.equal(0);
+    expect(board.switchPlayers.called).to.be.ok;
+  });
+
+  it('should switch the sign after every turn', function() {
+    board.fill(0);
+    expect(board.get(0).get('sign')).to.equal(0);
+    board.fill(1);
+    expect(board.get(1).get('sign')).to.equal(1);
   });
 });
