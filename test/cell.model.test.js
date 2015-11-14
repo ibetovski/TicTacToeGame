@@ -39,4 +39,14 @@ describe('Cell', function() {
     cell.fill(1);
     expect(cell.get('sign')).to.equal(0);
   });
+
+  it('should convert 0 sign to string O', function() {
+    cell.fill(0);
+    expect(cell.get('signString')).to.equal('O');
+  });
+
+  it('should convert 1 sign to string X', function() {
+    cell.fill(1);
+    expect(cell.get('signString')).to.equal('X');
+  });
 });

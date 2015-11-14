@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TicTacToe Game By Iliyan Betovski</title>
+  <link rel="stylesheet" type="text/css" href="css.css">
+</head>
+<body>
+
+<script type="text/template" id="myTemplate">
+  {{_.each(items, function(item, index) { }}
+  <div class="cell player-{{=item.sign}} {{= item.isWinner ? 'winner' : ''}}" data-index="{{=index}}">{{=item.signString}}</div>
+  {{ }); }}
+</script>
+
+  <div id="main">Container</div>
+  <script type="text/javascript" src="./node_modules/jquery/dist/jquery.min.js"></script>
+  <script type="text/javascript" src="./node_modules/backbone/node_modules/underscore/underscore-min.js"></script>
+  <script type="text/javascript" src="./node_modules/backbone/backbone-min.js"></script>
+  <script type="text/javascript" src="./app.bundle.js"></script>
+</body>
+</html>

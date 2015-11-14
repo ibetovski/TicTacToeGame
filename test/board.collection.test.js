@@ -15,8 +15,8 @@ describe('Board', function() {
   });
 
   afterEach(function() {
-    if (typeof board.hasWinner.restore === 'function') {
-      board.hasWinner.restore();
+    if (typeof board.checkForWinner.restore === 'function') {
+      board.checkForWinner.restore();
     }
 
     if (typeof board.switchPlayers.restore === 'function') {
@@ -37,13 +37,13 @@ describe('Board', function() {
   });
 
   it('should check for winner on every turn', function() {
-    sinon.stub(board, 'hasWinner');
+    sinon.stub(board, 'checkForWinner');
 
     board.fill(0);
-    expect(board.hasWinner.called).to.be.ok;
+    expect(board.checkForWinner.called).to.be.ok;
 
     board.fill(1);
-    expect(board.hasWinner.callCount).to.equal(2);
+    expect(board.checkForWinner.callCount).to.be.greaterThan(1);
   });
 
   it('should fill the model', function() {
@@ -163,5 +163,15 @@ describe('Board', function() {
     expect(board.get(0).get('sign')).to.equal(0);
     board.fill(1);
     expect(board.get(1).get('sign')).to.equal(1);
+  });
+
+  it('should not allow more turn if there is a winner', function() {
+    board.fill(0); // O
+    board.fill(3); // X
+    board.fill(1); // O
+    board.fill(4); // X
+    board.fill(2); // O
+    board.fill(5); // X
+    expect(board.get(5).get('isEmpty')).to.be.ok;
   });
 });
