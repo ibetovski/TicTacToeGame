@@ -7,35 +7,52 @@
 <body>
 
   <script type="text/template" id="playersTemplate">
-    <form>
-      Player 1: <input type="text" name="player1name" value="" /><br />
-      Player 2: <input type="text" name="player2name" value="" /><br />
-      <button type="submit">Start</button>
-    </form>
+    <div class="scene">
+    <h1>TicTacToe game</h1>
+    <p>Hello my friends.</p>
+    <p>Do you want to play a game? Please enter you names here and let the fun starts.</p>
+      <form>
+        <label for="player1name">Player 1 name:</label>
+        <input type="text" name="player1name" value="" autofocus/>
+
+        <label for="player2name">Player 2 name:</label>
+        <input type="text" name="player2name" value="" />
+
+        <button type="submit">Start</button>
+      </form>
+    </div>
   </script>
 
   <script type="text/template" id="boardTemplate">
-    {{_.each(players, function(player, index) { }}
-      {{ if (player.isOnTurn) { }}
-        <b> &gt; Player {{=index + 1}}: {{=player.name}}</b><br />
-      {{ } else { }}
-        Player {{=index + 1}}: {{=player.name}}<br />
-      {{ } }}
-    {{ }); }}
+    <div class="scene">
+      <div class="player-names">
+        {{_.each(players, function(player, index) { }}
+          {{ if (player.isOnTurn) { }}
+            <div class="on-turn">&gt; {{=player.name}}</div>
+          {{ } else { }}
+            <div>{{=player.name}}</div>
+          {{ } }}
+        {{ }); }}
+      </div>
 
-    {{_.each(items, function(item, index) { }}
-    <div class="cell player-{{=item.sign}} {{= item.isWinner ? 'winner' : ''}}" data-index="{{=index}}">{{=item.signString}}</div>
-    {{ }); }}
+      <div class="board-cells">
+        {{_.each(items, function(item, index) { }}
+        <div class="cell player-{{=item.sign}} {{= item.isWinner ? 'winner' : ''}}" data-index="{{=index}}">{{=item.signString}}</div>
+        {{ }); }}
+      </div>
+    </div>
   </script>
 
   <script type="text/template" id="winnerTemplate">
     <form>
-      {{ if (typeof winner != 'undefined') { }}
-      Aaaand the winner is: <b>{{=winner.name}}</b>!
-      {{ } else { }}
-      No winner, try again.
-      {{ } }}
-
+      <p>
+        {{ if (typeof winner != 'undefined') { }}
+        Ladies and gentlemen we have a winner! <b>{{=winner.name}}</b>
+        {{ } else { }}
+        <p>No winner my friends.</p>
+        <p>You can try again.</p>
+        {{ } }}
+      </p>
       <button type="submit">Play again</button>
     </form>
   </script>
