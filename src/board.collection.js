@@ -44,13 +44,20 @@ var Board = Backbone.Collection.extend({
    */
   initialize: function() {
     this.on('fill', function() {
+      this.turnsLeft--;
       this.checkForWinner();
 
       if (!this.hasWinner) {
+        if (!this.turnsLeft) {
+          return this.endGame();
+        }
         this.switchPlayers();
+
       } else {
-        this.trigger('gameEnds', {hasWinner: true});
+        this.endGame({hasWinner: true});
       }
+
+
     }, this);
 
     this.on('reset', function() {
@@ -79,16 +86,16 @@ var Board = Backbone.Collection.extend({
 
     if (!this.hasWinner) {
       this.get(id).fill(this.nextSign);
-      this.turnsLeft--;
-    }
-
-    if (!this.turnsLeft) {
-      this.trigger('gameEnds');
     }
   },
 
   clean: function() {
     this.reset(this.getEmptyModels());
+  },
+
+  endGame: function(options) {
+    options = options || {hasWinner: false};
+    this.trigger('gameEnds', options);
   },
 
   switchPlayers: function() {

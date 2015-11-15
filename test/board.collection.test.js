@@ -23,8 +23,8 @@ describe('Board', function() {
       board.switchPlayers.restore();
     }
 
-    if (typeof board.trigger.restore === 'function') {
-      board.trigger.restore();
+    if (typeof board.endGame.restore === 'function') {
+      board.endGame.restore();
     }
 
     board = null;
@@ -186,7 +186,7 @@ describe('Board', function() {
   });
 
   it('should notify if there is no winner', function() {
-    sinon.stub(board, 'trigger');
+    sinon.stub(board, 'endGame');
     board.fill(0);
     board.fill(1);
     board.fill(2);
@@ -194,10 +194,11 @@ describe('Board', function() {
     board.fill(4);
     board.fill(6);
     board.fill(5);
-    board.fill(7);
     board.fill(8);
+    board.fill(7);
     expect(board.hasWinner).not.to.be.ok;
-    expect(board.trigger.calledWith('gameEnds')).to.be.ok;
+    expect(board.endGame.called).to.be.ok;
+    expect(board.endGame.calledWith({hasWinner: true})).not.to.be.ok;
   });
 
   it('should reset and start from the beggining', function() {
@@ -255,5 +256,20 @@ describe('Board', function() {
     expect(board.get(0).get('sign')).to.equal(1);
     board.fill(1);
     expect(board.get(1).get('sign')).to.equal(0);
+  });
+
+  it('should has a winner even if it is the last turn', function() {
+    sinon.stub(board, 'endGame');
+    board.fill(0);
+    board.fill(1);
+    board.fill(2);
+    board.fill(3);
+    board.fill(4);
+    board.fill(6);
+    board.fill(5);
+    board.fill(7);
+    board.fill(8);
+    expect(board.endGame.called).to.be.ok;
+    expect(board.endGame.calledWith({hasWinner: true})).to.be.ok;
   });
 });
