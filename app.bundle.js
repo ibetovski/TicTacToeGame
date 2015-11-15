@@ -12793,7 +12793,7 @@ var Board = Backbone.Collection.extend({
       this.nextSign = this.firstPlayer;
     }
 
-    if (!this.hasWinner) {
+    if (!this.hasWinner && this.get(id).get('isEmpty')) {
       this.get(id).fill(this.nextSign);
     }
   },

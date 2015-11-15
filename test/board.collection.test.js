@@ -57,6 +57,13 @@ describe('Board', function() {
     expect(cell.get('isEmpty')).not.to.be.ok;
   });
 
+  it('should not do anything if the cell is busy', function() {
+    board.fill(0);
+    expect(board.turnsLeft).to.equal(8);
+    board.fill(0);
+    expect(board.turnsLeft).to.equal(8);
+  });
+
   it('should match per sign', function() {
     expect(board.getRow(0)).not.to.be.ok;
     board.get(0).fill(0);
