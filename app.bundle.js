@@ -12665,14 +12665,35 @@ _.templateSettings = {
   escape: /\{\{-(.+?)\}\}/g
 };
 
-var Model = require('./cell.model');
-var Collection = require('./board.collection');
-var View = require('./board.view');
+var Backbone = require('Backbone');
 
-var view = new View({
-  collection: new Collection()
+
+var Router = require('./router');
+var Model = require('./cell.model');
+var PlayersCollection = require('./players.collection');
+var Collection = require('./board.collection');
+var BoardView = require('./board.view');
+var PlayersView = require('./players.view');
+
+var router = new Router();
+
+var playersCollection = new PlayersCollection();
+
+router.on('route:start' , function(){
+  var view = new PlayersView({
+    collection: playersCollection
+  });
 });
-},{"./board.collection":5,"./board.view":6,"./cell.model":7}],5:[function(require,module,exports){
+
+router.on('route:play' , function(){
+  var view = new BoardView({
+    collection: new Collection(),
+    players: playersCollection
+  });
+});
+
+Backbone.history.start();
+},{"./board.collection":5,"./board.view":6,"./cell.model":7,"./players.collection":9,"./players.view":10,"./router":11,"Backbone":1}],5:[function(require,module,exports){
 var Backbone = require('Backbone');
 var Cell = require('./cell.model');
 
@@ -12686,10 +12707,26 @@ var Board = Backbone.Collection.extend({
   nextSign: 0,
 
   /**
+   * Track how many turns are left and see if there is a winner in the end.
+   * @type {Number}
+   */
+  turnsLeft: 9,
+
+  /**
    * Flags the collection and proceeds according to that.
    * @type {Boolean}
    */
   hasWinner: false,
+
+  getEmptyModels: function() {
+    var models = [];
+
+    for (var i = 0; i < 9; i++) {
+      models.push({id: i});
+    }
+
+    return models;
+  },
 
   /**
    * Bind all the listeners we need and create the collection.
@@ -12697,17 +12734,22 @@ var Board = Backbone.Collection.extend({
    * @return {Void}
    */
   initialize: function() {
-    this.on('change:isEmpty', function() {
-      this.switchPlayers();
-    }, this);
-
-    this.on('change', function() {
+    this.on('fill', function() {
       this.checkForWinner();
+
+      if (!this.hasWinner) {
+        this.switchPlayers();
+      } else {
+        this.trigger('gameEnds', {hasWinner: true});
+      }
+    });
+
+    this.on('reset', function() {
+      this.turnsLeft = 9;
+      this.hasWinner = false;
     }, this);
 
-    for (var i = 0; i < 9; i++) {
-      this.add({id: i});
-    }
+    this.reset(this.getEmptyModels());
   },
 
   /**
@@ -12719,11 +12761,21 @@ var Board = Backbone.Collection.extend({
   fill: function(id) {
     if (!this.hasWinner) {
       this.get(id).fill(this.nextSign);
+      this.turnsLeft--;
     }
+
+    if (!this.turnsLeft) {
+      this.trigger('gameEnds');
+    }
+  },
+
+  clean: function() {
+    this.reset(this.getEmptyModels());
   },
 
   switchPlayers: function() {
     this.nextSign = !this.nextSign & 1;
+    this.trigger('switchPlayers', this.nextSign);
   },
 
   /**
@@ -12880,15 +12932,57 @@ var Board = Backbone.Collection.extend({
 module.exports = Board;
 },{"./cell.model":7,"Backbone":1}],6:[function(require,module,exports){
 var Backbone = require('Backbone');
+var WinnerView = require('./winner.view');
 var Board = Backbone.View.extend({
   // id: 'main',
   el: $('#main'),
-  initialize: function() {
-    this.collection.on('change', function() {
+  initialize: function(options) {
+    if (typeof options.players != 'undefined' && !options.players.isPristine) {
+      this.players = options.players;
+    } else {
+      return window.location.hash = 'start';
+    }
+
+    this.collection.on('change reset', function() {
       this.render();
     }, this);
 
+    this.players.on('change', function() {
+      this.render();
+    }, this);
+
+    this.collection.on('switchPlayers', function(nextPlayer) {
+      console.log('switch', this.players.trigger('switchPlayers', nextPlayer));
+    }, this);
+
+    // The collection should notify us when the game ends
+    this.collection.on('gameEnds', function(options) {
+      options = options || {hasWinner: false};
+      this.initializeWinnerView(options);
+    }, this);
+
     this.render();
+  },
+
+  initializeWinnerView: function(options) {
+    options = options || {hasWinner: false};
+
+    var viewOptions = {};
+
+    if (options.hasWinner) {
+      var winnerModels = this.players.filter(function(item) {
+        return item.get('isOnTurn') === true;
+      });
+      viewOptions.model = winnerModels[0];
+    }
+
+
+    var winnerView = new WinnerView(viewOptions);
+
+    this.listenTo(winnerView, 'playAgain', function() {
+      this.collection.clean();
+      winnerView.remove();
+    });
   },
 
   events: {
@@ -12900,17 +12994,19 @@ var Board = Backbone.View.extend({
     this.collection.fill(cellNumber);
   },
 
-  template: _.template($('#myTemplate').html()),
+  template: _.template($('#boardTemplate').html()),
 
   render: function() {
-    this.$el.html(this.template({items: this.collection.toJSON()}));
+    this.$el.html(this.template({
+      items: this.collection.toJSON(),
+      players: this.players.toJSON()
+    }));
   }
 });
 
 module.exports = Board;
-},{"Backbone":1}],7:[function(require,module,exports){
-(function (global){
-var Backbone = (typeof window !== "undefined" ? window['Backbone'] : typeof global !== "undefined" ? global['Backbone'] : null);
+},{"./winner.view":12,"Backbone":1}],7:[function(require,module,exports){
+var Backbone = require('Backbone');
 
 var strings = ['O', 'X'];
 
@@ -12940,9 +13036,145 @@ var Cell = Backbone.Model.extend({
       this.set('isEmpty', false);
       this.set('sign', sign);
     }
+
+    if (typeof this.collection != 'undefined') {
+      this.collection.trigger('fill');
+    }
   }
 });
 
 module.exports = Cell;
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[4]);
+},{"Backbone":1}],8:[function(require,module,exports){
+var Backbone = require('Backbone');
+
+var PlayersModel = Backbone.Model.extend({
+  defaults: {
+    name: '',
+    sign: ''
+  },
+
+  initialize: function() {
+    this.listenTo(this.collection, 'switchPlayers', function(nextPlayer) {
+      if (this.id === nextPlayer) {
+        this.set("isOnTurn", true);
+      } else {
+        this.set("isOnTurn", false);
+      }
+    }, this);
+  }
+});
+
+module.exports = PlayersModel;
+},{"Backbone":1}],9:[function(require,module,exports){
+var Backbone = require('Backbone');
+var Model = require('./player.model');
+
+var PlayersCollection = Backbone.Collection.extend({
+  isPristine: true,
+  model: Model,
+  nextPlayer: null,
+
+  initialize: function() {
+    // we need empty models.
+    this.add({id: 0, isOnTurn: true});
+    this.add({id: 1});
+
+    this.on('change:name', function() {
+      this.isPristine = false;
+    }, this);
+  }
+
+
+});
+
+module.exports = PlayersCollection;
+},{"./player.model":8,"Backbone":1}],10:[function(require,module,exports){
+var Backbone = require('Backbone');
+var Players = Backbone.View.extend({
+
+  el: $('#main'),
+  initialize: function() {
+    this.render();
+  },
+
+  events: {
+    'submit': 'onSubmit'
+  },
+
+  /** 
+   * Get form values and set them to the model.
+   * @param  {Object} e JS event
+   * @return {Void}
+   */
+  onSubmit: function(e) {
+    e.preventDefault();
+    var collection = this.collection;
+
+    // sets player's name and his sign
+    this.$el.find('input[name]').each(function(index) {
+      collection.get(index).set('name', this.value);
+      collection.get(index).set('sign', index);
+    });
+
+    // start playing :)
+    window.location.hash = "play";
+  },
+
+  template: _.template($('#playersTemplate').html()),
+
+  render: function() {
+    this.$el.html(this.template());
+  }
+});
+
+module.exports = Players;
+},{"Backbone":1}],11:[function(require,module,exports){
+var Backbone = require('Backbone');
+
+var Router = Backbone.Router.extend({
+  routes: {
+    "start": 'start',
+    "play": 'play'
+  }
+});
+
+module.exports = Router;
+},{"Backbone":1}],12:[function(require,module,exports){
+var Backbone = require('Backbone');
+var Winner = Backbone.View.extend({
+
+  // we don't want Backbone to delete our real dom element on view.remove.
+  el: function() {
+    $('#winner-placeholder').append('<div></div>');
+    return $('#winner-placeholder').find('div');
+  },
+  
+  initialize: function() {
+    this.render();
+  },
+
+  events: {
+    'submit': 'onSubmit'
+  },
+
+  onSubmit: function(e) {
+    e.preventDefault();
+    this.trigger('playAgain');
+  },
+
+  template: _.template($('#winnerTemplate').html()),
+
+  render: function() {
+    var templateOptions = {};
+
+    if (typeof this.model != 'undefined') {
+      templateOptions.winner = this.model.toJSON();
+    }
+
+    this.$el.html(this.template(templateOptions));
+  }
+});
+
+
+module.exports = Winner;
+},{"Backbone":1}]},{},[4]);

@@ -11,10 +11,26 @@ var Board = Backbone.Collection.extend({
   nextSign: 0,
 
   /**
+   * Track how many turns are left and see if there is a winner in the end.
+   * @type {Number}
+   */
+  turnsLeft: 9,
+
+  /**
    * Flags the collection and proceeds according to that.
    * @type {Boolean}
    */
   hasWinner: false,
+
+  getEmptyModels: function() {
+    var models = [];
+
+    for (var i = 0; i < 9; i++) {
+      models.push({id: i});
+    }
+
+    return models;
+  },
 
   /**
    * Bind all the listeners we need and create the collection.
@@ -22,17 +38,22 @@ var Board = Backbone.Collection.extend({
    * @return {Void}
    */
   initialize: function() {
-    this.on('change:isEmpty', function() {
-      this.switchPlayers();
-    }, this);
-
-    this.on('change', function() {
+    this.on('fill', function() {
       this.checkForWinner();
+
+      if (!this.hasWinner) {
+        this.switchPlayers();
+      } else {
+        this.trigger('gameEnds', {hasWinner: true});
+      }
+    });
+
+    this.on('reset', function() {
+      this.turnsLeft = 9;
+      this.hasWinner = false;
     }, this);
 
-    for (var i = 0; i < 9; i++) {
-      this.add({id: i});
-    }
+    this.reset(this.getEmptyModels());
   },
 
   /**
@@ -44,11 +65,21 @@ var Board = Backbone.Collection.extend({
   fill: function(id) {
     if (!this.hasWinner) {
       this.get(id).fill(this.nextSign);
+      this.turnsLeft--;
     }
+
+    if (!this.turnsLeft) {
+      this.trigger('gameEnds');
+    }
+  },
+
+  clean: function() {
+    this.reset(this.getEmptyModels());
   },
 
   switchPlayers: function() {
     this.nextSign = !this.nextSign & 1;
+    this.trigger('switchPlayers', this.nextSign);
   },
 
   /**

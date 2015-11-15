@@ -23,6 +23,10 @@ describe('Board', function() {
       board.switchPlayers.restore();
     }
 
+    if (typeof board.switchPlayers.restore === 'function') {
+      board.switchPlayers.restore();
+    }
+
     board = null;
   });
 
@@ -173,5 +177,47 @@ describe('Board', function() {
     board.fill(2); // O
     board.fill(5); // X
     expect(board.get(5).get('isEmpty')).to.be.ok;
+  });
+
+  it('should count how many turn are left', function() {
+    expect(board.turnsLeft).to.equal(9);
+    board.fill(0);
+    expect(board.turnsLeft).to.equal(8);
+  });
+
+  it('should notify if there is no winner', function() {
+    sinon.stub(board, 'trigger');
+    board.fill(0);
+    board.fill(1);
+    board.fill(2);
+    board.fill(3);
+    board.fill(4);
+    board.fill(6);
+    board.fill(5);
+    board.fill(7);
+    board.fill(8);
+    expect(board.hasWinner).not.to.be.ok;
+    expect(board.trigger.calledWith('gameEnds')).to.be.ok;
+  });
+
+  it('should reset and start from the beggining', function() {
+    board.fill(0);
+    board.fill(1);
+    expect(board.turnsLeft).to.equal(7);
+    board.clean();
+    expect(board.turnsLeft).to.equal(9);
+  });
+
+  it('should fill a cell after reseting because of a winner', function() {
+    board.fill(0); // O
+    board.fill(3);
+    board.fill(1); // O
+    board.fill(4);
+    board.fill(2); // O
+    expect(board.hasWinner).to.be.ok;
+    board.clean();
+    expect(board.hasWinner).not.to.be.ok;
+    board.fill(0);
+    expect(board.turnsLeft).to.equal(8);
   });
 });

@@ -6,13 +6,45 @@
 </head>
 <body>
 
-<script type="text/template" id="myTemplate">
-  {{_.each(items, function(item, index) { }}
-  <div class="cell player-{{=item.sign}} {{= item.isWinner ? 'winner' : ''}}" data-index="{{=index}}">{{=item.signString}}</div>
-  {{ }); }}
-</script>
+  <script type="text/template" id="playersTemplate">
+    <form>
+      Player 1: <input type="text" name="player1name" value="" /><br />
+      Player 2: <input type="text" name="player2name" value="" /><br />
+      <button type="submit">Start</button>
+    </form>
+  </script>
 
-  <div id="main">Container</div>
+  <script type="text/template" id="boardTemplate">
+    {{_.each(players, function(player, index) { }}
+      {{ if (player.isOnTurn) { }}
+        <b> &gt; Player {{=index + 1}}: {{=player.name}}</b><br />
+      {{ } else { }}
+        Player {{=index + 1}}: {{=player.name}}<br />
+      {{ } }}
+    {{ }); }}
+
+    {{_.each(items, function(item, index) { }}
+    <div class="cell player-{{=item.sign}} {{= item.isWinner ? 'winner' : ''}}" data-index="{{=index}}">{{=item.signString}}</div>
+    {{ }); }}
+  </script>
+
+  <script type="text/template" id="winnerTemplate">
+    <form>
+      {{ if (typeof winner != 'undefined') { }}
+      Aaaand the winner is: <b>{{=winner.name}}</b>!
+      {{ } else { }}
+      No winner, try again.
+      {{ } }}
+
+      <button type="submit">Play again</button>
+    </form>
+  </script>
+
+  <div id="main">
+
+  </div>
+  <div id="winner-placeholder"></div>
+
   <script type="text/javascript" src="./node_modules/jquery/dist/jquery.min.js"></script>
   <script type="text/javascript" src="./node_modules/backbone/node_modules/underscore/underscore-min.js"></script>
   <script type="text/javascript" src="./node_modules/backbone/backbone-min.js"></script>

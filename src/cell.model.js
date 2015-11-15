@@ -28,6 +28,10 @@ var Cell = Backbone.Model.extend({
       this.set('isEmpty', false);
       this.set('sign', sign);
     }
+
+    if (typeof this.collection != 'undefined') {
+      this.collection.trigger('fill');
+    }
   }
 });
 
