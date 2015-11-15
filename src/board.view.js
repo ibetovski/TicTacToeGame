@@ -2,7 +2,11 @@ var Backbone = require('Backbone');
 var WinnerView = require('./winner.view');
 var Board = Backbone.View.extend({
   // id: 'main',
-  el: $('#main'),
+  el: function() {
+    $('#main').append('<div></div>');
+    return $('#main').find('div');
+  },
+
   initialize: function(options) {
     if (typeof options.players != 'undefined' && !options.players.isPristine) {
       this.players = options.players;
@@ -10,23 +14,23 @@ var Board = Backbone.View.extend({
       return window.location.hash = 'start';
     }
 
-    this.collection.on('change reset', function() {
+    this.listenTo(this.collection,'change reset', function() {
       this.render();
-    }, this);
+    });
 
-    this.players.on('change', function() {
+    this.listenTo(this.players, 'change', function() {
       this.render();
-    }, this);
+    });
 
-    this.collection.on('switchPlayers', function(nextPlayer) {
-      console.log('switch', this.players.trigger('switchPlayers', nextPlayer));
-    }, this);
+    this.listenTo(this.collection, 'switchPlayers', function(nextPlayer) {
+      this.players.trigger('switchPlayers', nextPlayer);
+    });
 
     // The collection should notify us when the game ends
-    this.collection.on('gameEnds', function(options) {
+    this.listenTo(this.collection, 'gameEnds', function(options) {
       options = options || {hasWinner: false};
       this.initializeWinnerView(options);
-    }, this);
+    });
 
     this.render();
   },
@@ -57,6 +61,7 @@ var Board = Backbone.View.extend({
   },
 
   onClick: function(e) {
+    e.preventDefault();
     var cellNumber = $(e.target).data('index');
     this.collection.fill(cellNumber);
   },

@@ -1,20 +1,25 @@
 var Backbone = require('Backbone');
 var Cell = require('./cell.model');
 
+var GAME_TURNS = 9;
+
 var Board = Backbone.Collection.extend({
   model: Cell,
 
   /**
    * The default sign is 0. This value should change after every player's turn.
+   * We will create nextSign from it and it will change on every turn.
+   * firstPlater changes only when the game ends.
    * @type {Number}
    */
-  nextSign: 0,
+  firstPlayer: 0,
+  nextSign: null,
 
   /**
    * Track how many turns are left and see if there is a winner in the end.
    * @type {Number}
    */
-  turnsLeft: 9,
+  turnsLeft: GAME_TURNS,
 
   /**
    * Flags the collection and proceeds according to that.
@@ -25,7 +30,7 @@ var Board = Backbone.Collection.extend({
   getEmptyModels: function() {
     var models = [];
 
-    for (var i = 0; i < 9; i++) {
+    for (var i = 0; i < GAME_TURNS; i++) {
       models.push({id: i});
     }
 
@@ -46,14 +51,19 @@ var Board = Backbone.Collection.extend({
       } else {
         this.trigger('gameEnds', {hasWinner: true});
       }
-    });
-
-    this.on('reset', function() {
-      this.turnsLeft = 9;
-      this.hasWinner = false;
     }, this);
 
-    this.reset(this.getEmptyModels());
+    this.on('reset', function() {
+      this.turnsLeft = GAME_TURNS;
+      this.hasWinner = false;
+
+      // every game we switch players
+      this.nextSign = null;
+      this.firstPlayer = !this.firstPlayer & 1;
+      this.trigger('switchPlayers', this.firstPlayer);
+    }, this);
+
+    this.add(this.getEmptyModels());
   },
 
   /**
@@ -63,6 +73,10 @@ var Board = Backbone.Collection.extend({
    * @return {Void}
    */
   fill: function(id) {
+    if (this.nextSign === null) {
+      this.nextSign = this.firstPlayer;
+    }
+
     if (!this.hasWinner) {
       this.get(id).fill(this.nextSign);
       this.turnsLeft--;

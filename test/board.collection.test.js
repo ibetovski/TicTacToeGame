@@ -23,8 +23,8 @@ describe('Board', function() {
       board.switchPlayers.restore();
     }
 
-    if (typeof board.switchPlayers.restore === 'function') {
-      board.switchPlayers.restore();
+    if (typeof board.trigger.restore === 'function') {
+      board.trigger.restore();
     }
 
     board = null;
@@ -169,7 +169,7 @@ describe('Board', function() {
     expect(board.get(1).get('sign')).to.equal(1);
   });
 
-  it('should not allow more turn if there is a winner', function() {
+  it('should not allow more turns if there is a winner', function() {
     board.fill(0); // O
     board.fill(3); // X
     board.fill(1); // O
@@ -219,5 +219,41 @@ describe('Board', function() {
     expect(board.hasWinner).not.to.be.ok;
     board.fill(0);
     expect(board.turnsLeft).to.equal(8);
+  });
+
+  it('should switch players when the game ends', function() {
+    expect(board.firstPlayer).to.equal(0);
+    board.clean();
+    expect(board.firstPlayer).to.equal(1);
+    board.clean();
+    expect(board.firstPlayer).to.equal(0);
+  });
+
+  it('should clean nextSign on reset', function() {
+    expect(board.firstPlayer).to.equal(0);
+    board.fill(0); // O
+    expect(board.nextSign).to.be.a('number');
+    board.clean();
+    expect(board.nextSign).to.equal(null);
+  });
+
+  it('should switch sign on every turn after no winner', function() {
+    expect(board.firstPlayer).to.equal(0);
+    board.fill(0);
+    board.fill(1);
+    board.fill(2);
+    board.fill(3);
+    board.fill(4);
+    board.fill(6);
+    board.fill(5);
+    board.fill(7);
+    board.fill(8);
+    board.clean();
+    expect(board.nextSign).to.equal(null);
+    expect(board.firstPlayer).to.equal(1);
+    board.fill(0);
+    expect(board.get(0).get('sign')).to.equal(1);
+    board.fill(1);
+    expect(board.get(1).get('sign')).to.equal(0);
   });
 });

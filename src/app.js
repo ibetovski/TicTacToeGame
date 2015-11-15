@@ -18,17 +18,30 @@ var router = new Router();
 
 var playersCollection = new PlayersCollection();
 
+var playersView;
+var boardView;
+
 router.on('route:start' , function(){
-  var view = new PlayersView({
+  playersView = new PlayersView({
     collection: playersCollection
   });
+
+  if (boardView != null) {
+    boardView.remove();
+    boardView = null;
+  }
 });
 
 router.on('route:play' , function(){
-  var view = new BoardView({
+  boardView = new BoardView({
     collection: new Collection(),
     players: playersCollection
   });
+
+  if (playersView != null) {
+    playersView.remove();
+    playersView = null;
+  }
 });
 
 Backbone.history.start();

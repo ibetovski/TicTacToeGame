@@ -1,7 +1,11 @@
 var Backbone = require('Backbone');
 var Players = Backbone.View.extend({
 
-  el: $('#main'),
+  el: function() {
+    $('#main').append('<div></div>');
+    return $('#main').find('div');
+  },
+
   initialize: function() {
     this.render();
   },
@@ -21,8 +25,10 @@ var Players = Backbone.View.extend({
 
     // sets player's name and his sign
     this.$el.find('input[name]').each(function(index) {
-      collection.get(index).set('name', this.value);
-      collection.get(index).set('sign', index);
+      if (index < 2) {
+        collection.get(index).set('name', this.value);
+        collection.get(index).set('sign', index);
+      }
     });
 
     // start playing :)

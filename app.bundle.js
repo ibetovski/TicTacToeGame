@@ -12679,17 +12679,30 @@ var router = new Router();
 
 var playersCollection = new PlayersCollection();
 
+var playersView;
+var boardView;
+
 router.on('route:start' , function(){
-  var view = new PlayersView({
+  playersView = new PlayersView({
     collection: playersCollection
   });
+
+  if (boardView != null) {
+    boardView.remove();
+    boardView = null;
+  }
 });
 
 router.on('route:play' , function(){
-  var view = new BoardView({
+  boardView = new BoardView({
     collection: new Collection(),
     players: playersCollection
   });
+
+  if (playersView != null) {
+    playersView.remove();
+    playersView = null;
+  }
 });
 
 Backbone.history.start();
@@ -12697,20 +12710,25 @@ Backbone.history.start();
 var Backbone = require('Backbone');
 var Cell = require('./cell.model');
 
+var GAME_TURNS = 9;
+
 var Board = Backbone.Collection.extend({
   model: Cell,
 
   /**
    * The default sign is 0. This value should change after every player's turn.
+   * We will create nextSign from it and it will change on every turn.
+   * firstPlater changes only when the game ends.
    * @type {Number}
    */
-  nextSign: 0,
+  firstPlayer: 0,
+  nextSign: null,
 
   /**
    * Track how many turns are left and see if there is a winner in the end.
    * @type {Number}
    */
-  turnsLeft: 9,
+  turnsLeft: GAME_TURNS,
 
   /**
    * Flags the collection and proceeds according to that.
@@ -12721,7 +12739,7 @@ var Board = Backbone.Collection.extend({
   getEmptyModels: function() {
     var models = [];
 
-    for (var i = 0; i < 9; i++) {
+    for (var i = 0; i < GAME_TURNS; i++) {
       models.push({id: i});
     }
 
@@ -12742,14 +12760,19 @@ var Board = Backbone.Collection.extend({
       } else {
         this.trigger('gameEnds', {hasWinner: true});
       }
-    });
-
-    this.on('reset', function() {
-      this.turnsLeft = 9;
-      this.hasWinner = false;
     }, this);
 
-    this.reset(this.getEmptyModels());
+    this.on('reset', function() {
+      this.turnsLeft = GAME_TURNS;
+      this.hasWinner = false;
+
+      // every game we switch players
+      this.nextSign = null;
+      this.firstPlayer = !this.firstPlayer & 1;
+      this.trigger('switchPlayers', this.firstPlayer);
+    }, this);
+
+    this.add(this.getEmptyModels());
   },
 
   /**
@@ -12759,6 +12782,10 @@ var Board = Backbone.Collection.extend({
    * @return {Void}
    */
   fill: function(id) {
+    if (this.nextSign === null) {
+      this.nextSign = this.firstPlayer;
+    }
+
     if (!this.hasWinner) {
       this.get(id).fill(this.nextSign);
       this.turnsLeft--;
@@ -12935,7 +12962,11 @@ var Backbone = require('Backbone');
 var WinnerView = require('./winner.view');
 var Board = Backbone.View.extend({
   // id: 'main',
-  el: $('#main'),
+  el: function() {
+    $('#main').append('<div></div>');
+    return $('#main').find('div');
+  },
+
   initialize: function(options) {
     if (typeof options.players != 'undefined' && !options.players.isPristine) {
       this.players = options.players;
@@ -12943,23 +12974,23 @@ var Board = Backbone.View.extend({
       return window.location.hash = 'start';
     }
 
-    this.collection.on('change reset', function() {
+    this.listenTo(this.collection,'change reset', function() {
       this.render();
-    }, this);
+    });
 
-    this.players.on('change', function() {
+    this.listenTo(this.players, 'change', function() {
       this.render();
-    }, this);
+    });
 
-    this.collection.on('switchPlayers', function(nextPlayer) {
-      console.log('switch', this.players.trigger('switchPlayers', nextPlayer));
-    }, this);
+    this.listenTo(this.collection, 'switchPlayers', function(nextPlayer) {
+      this.players.trigger('switchPlayers', nextPlayer);
+    });
 
     // The collection should notify us when the game ends
-    this.collection.on('gameEnds', function(options) {
+    this.listenTo(this.collection, 'gameEnds', function(options) {
       options = options || {hasWinner: false};
       this.initializeWinnerView(options);
-    }, this);
+    });
 
     this.render();
   },
@@ -12990,6 +13021,7 @@ var Board = Backbone.View.extend({
   },
 
   onClick: function(e) {
+    e.preventDefault();
     var cellNumber = $(e.target).data('index');
     this.collection.fill(cellNumber);
   },
@@ -13092,7 +13124,11 @@ module.exports = PlayersCollection;
 var Backbone = require('Backbone');
 var Players = Backbone.View.extend({
 
-  el: $('#main'),
+  el: function() {
+    $('#main').append('<div></div>');
+    return $('#main').find('div');
+  },
+
   initialize: function() {
     this.render();
   },
@@ -13112,8 +13148,10 @@ var Players = Backbone.View.extend({
 
     // sets player's name and his sign
     this.$el.find('input[name]').each(function(index) {
-      collection.get(index).set('name', this.value);
-      collection.get(index).set('sign', index);
+      if (index < 2) {
+        collection.get(index).set('name', this.value);
+        collection.get(index).set('sign', index);
+      }
     });
 
     // start playing :)
