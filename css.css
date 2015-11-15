@@ -57,6 +57,7 @@ div.player-names div {
 }
 
 div.player-names div:first-child {
+  text-align: left;
   padding-left: 0;
 }
 

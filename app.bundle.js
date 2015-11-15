@@ -12736,6 +12736,11 @@ var Board = Backbone.Collection.extend({
    */
   hasWinner: false,
 
+  /**
+   * Use it when you need a fresh collection.
+   * 
+   * @return {Array} Array of objects having ids.
+   */
   getEmptyModels: function() {
     var models = [];
 
@@ -12798,15 +12803,28 @@ var Board = Backbone.Collection.extend({
     }
   },
 
+  /**
+   * Clean the board and play again.
+   * @return {Void}
+   */
   clean: function() {
     this.reset(this.getEmptyModels());
   },
 
+  /**
+   * Stop the game.
+   * @param  {Object} options {hasWinner: true/false}
+   * @return {Void}
+   */
   endGame: function(options) {
     options = options || {hasWinner: false};
     this.trigger('gameEnds', options);
   },
 
+  /**
+   * Every turn is a different player so switch them when needed.
+   * @return {Void}
+   */
   switchPlayers: function() {
     this.nextSign = !this.nextSign & 1;
     this.trigger('switchPlayers', this.nextSign);
@@ -12817,15 +12835,24 @@ var Board = Backbone.Collection.extend({
    * @return {Void} [description]
    */
   checkForWinner: function() {
-    // check all rows and columns for a winning match.
-    for (var i = 0; i < 3; i++) {
-      this.getRow(i);
-      this.getColumn(i);
-    }
 
-    // and check both diagonals.
-    this.getDiagonal(0);
-    this.getDiagonal(2);
+    var patterns = [
+      // rows
+      [0,1,2],
+      [3,4,5],
+      [6,7,8],
+
+      // columns
+      [0,3,6],
+      [1,4,7],
+      [2,5,8],
+
+      // diagonals
+      [0,4,8],
+      [2,4,6]
+    ];
+
+    return this.checkPerList(patterns);
   },
 
   /**
@@ -12839,122 +12866,56 @@ var Board = Backbone.Collection.extend({
   },
 
   /**
-   * Use in order to check every row for a winner match.
-   * @param  {Number} row The number of the row you want to check (starts from 0)
-   * @return {Boolean}     If there is a winning match.
-   * 
-   * @todo: Use reusable code.
+   * Provide an array of arrays with ids to be checked for winning match.
+   * @param  {Array} patterns List of arrays holding ids.
+   * @return {Boolean}        If there is a winner or not
    */
-  getRow: function(row) {
-    if (this.hasWinner) {
-      return true;
-    }
+  checkPerList: function(patterns) {
+    var matchCount = 0;
+    var prevSign = null;
+    var ids;
+    var id;
 
-    var step = 3;
-    var matchingCount = 0;
 
-    var prevSign;
-    var model;
+    // iterate the list of arrays
+    for (var i = 0; i < patterns.length; i++) {
+      // if we have 3 matches from the inner loop, STOP
+      if (matchCount === 3) {
+        break;
+      }
 
-    var modelId;
-    var matchingIds = [];
+      ids = patterns[i];
+      matchingIds = [];
+      matchCount = 0;
 
-    for (var i = 0; i < 3; i++) {
-      modelId = row * step + i;
-      model = this.get(modelId);
-      if (i === 0 && !model.get('isEmpty')) {
-        prevSign = model.get('sign');
-        matchingIds.push(modelId);
-      } else if (!model.get('isEmpty') && prevSign === model.get('sign')) {
-        matchingIds.push(modelId);
+      // iterate every id.
+      for (var j = 0; j < ids.length; j++) {
+        id = ids[j];
+
+        // if the cell is empty don't go to the other pattern (3 ids.)
+        if (this.get(id).get('isEmpty')) {
+          break;
+        }
+
+        // keep the first sign.
+        if (j === 0 && !this.get(id).get('isEmpty')) {
+          prevSign = this.get(id).get('sign');
+          ++matchCount;
+        } else if(!this.get(id).get('isEmpty')) {
+          // when there are 3 matches, STOP
+          if (this.get(id).get('sign') === prevSign) {
+            if (++matchCount === 3) {
+              matchingIds = patterns[i];
+              break;
+            }
+          }
+
+          prevSign = this.get(id).get('sign');
+        }
       }
     }
 
-    if (matchingIds.length === 3) {
-      this.matchingIds = matchingIds;
-      this.notifyWinnerCells();
-      return this.hasWinner = true;
-    }
-  },
-
-  /**
-   * Use in order to check every column for a winner match.
-   * @param  {Number} column The number of the column you want to check (starts from 0)
-   * @return {Boolean}     If there is a winning match.
-   * 
-   * @todo: Use reusable code.
-   */
-  getColumn: function(column) {
-    if (this.hasWinner) {
-      return true;
-    }
-
-    var step = 3;
-    var matchingCount = 0;
-
-    var prevSign;
-    var model;
-
-    var modelId;
-    var matchingIds = [];
-
-    for (var i = 0; i < 3; i++) {
-      modelId = column + i * step;
-      model = this.get(modelId);
-      if (i === 0 && !model.get('isEmpty')) {
-        prevSign = model.get('sign');
-        matchingIds.push(modelId);
-      } else if (!model.get('isEmpty') && prevSign === model.get('sign')) {
-        matchingIds.push(modelId);
-      }
-    }
-
-    if (matchingIds.length === 3) {
-      this.matchingIds = matchingIds;
-      this.notifyWinnerCells();
-      return this.hasWinner = true;
-    }
-  },
-
-  /**
-   * Check a diagonal by providing a number if diagonal.
-   * 
-   * @param  {Number} diagonal The starting cell number of the diagonal (0 or 2)
-   * @return {Boolean}
-   *
-   * @todo: The diagonal numbers are confusing
-   * @todo: Use reusable code.
-   */
-  getDiagonal: function(diagonal) {
-    if (this.hasWinner) {
-      return true;
-    }
-
-    var step = 4;
-
-    if (diagonal === 2) {
-      step = 2;
-    }
-
-    var matchingCount = 0;
-
-    var prevSign;
-    var model;
-
-    var modelId;
-    var matchingIds = [];
-
-    for (var i = 0; i < 3; i++) {
-      modelId = diagonal + i * step;
-      model = this.get(modelId);
-      if (i === 0 && !model.get('isEmpty')) {
-        prevSign = model.get('sign');
-        matchingIds.push(modelId);
-      } else if (!model.get('isEmpty') && prevSign === model.get('sign')) {
-        matchingIds.push(modelId);
-      }
-    }
-
+    // notify whoever is concerned
     if (matchingIds.length === 3) {
       this.matchingIds = matchingIds;
       this.notifyWinnerCells();

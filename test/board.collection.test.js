@@ -65,99 +65,99 @@ describe('Board', function() {
   });
 
   it('should match per sign', function() {
-    expect(board.getRow(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(0).fill(0);
     board.get(1).fill(0);
     board.get(2).fill(0);
-    expect(board.getRow(0)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should not match win if more than one sign', function() {
-    expect(board.getRow(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(0).fill(0);
     board.get(1).fill(0);
     board.get(2).fill(1);
-    expect(board.getRow(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
   });
 
   it('should match win for the first row', function() {
-    expect(board.getRow(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(0).fill();
-    expect(board.getRow(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(1).fill();
-    expect(board.getRow(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(2).fill();
-    expect(board.getRow(0)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for the 2nd row', function() {
-    expect(board.getRow(1)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(3).fill();
-    expect(board.getRow(1)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(4).fill();
-    expect(board.getRow(1)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(5).fill();
-    expect(board.getRow(1)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for 3rd row', function() {
-    expect(board.getRow(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(6).fill();
-    expect(board.getRow(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(7).fill();
-    expect(board.getRow(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(8).fill();
-    expect(board.getRow(2)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for 1st column', function() {
-    expect(board.getColumn(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(0).fill();
-    expect(board.getColumn(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(3).fill();
-    expect(board.getColumn(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(6).fill();
-    expect(board.getColumn(0)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for 2nd column', function() {
-    expect(board.getColumn(1)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(1).fill();
-    expect(board.getColumn(1)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(4).fill();
-    expect(board.getColumn(1)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(7).fill();
-    expect(board.getColumn(1)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for 3rd column', function() {
-    expect(board.getColumn(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(2).fill();
-    expect(board.getColumn(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(5).fill();
-    expect(board.getColumn(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(8).fill();
-    expect(board.getColumn(2)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for left to right diagonal', function() {
-    expect(board.getDiagonal(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(0).fill();
-    expect(board.getDiagonal(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(4).fill();
-    expect(board.getDiagonal(0)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(8).fill();
-    expect(board.getDiagonal(0)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should match win for right to left diagonal', function() {
-    expect(board.getDiagonal(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(2).fill();
-    expect(board.getDiagonal(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(4).fill();
-    expect(board.getDiagonal(2)).not.to.be.ok;
+    expect(board.checkForWinner()).not.to.be.ok;
     board.get(6).fill();
-    expect(board.getDiagonal(2)).to.be.ok;
+    expect(board.checkForWinner()).to.be.ok;
   });
 
   it('should call switchPlayers function after every turn', function() {
