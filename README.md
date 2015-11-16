@@ -1,11 +1,11 @@
 ## TicTacToe Game
-This game is developed by Test-Driven Development with BackboneJS and SinonJS.
+This game is developed with Test-Driven Development using BackboneJS and SinonJS.
 It should be played by two players.
 
 
 ## Installation.
 ```
-git clone git@github.com:ibetovski/TicTacToeGame.git
+git clone https://github.com/ibetovski/TicTacToeGame.git
 cd TicTacToeGame/
 
 # install dependencies
