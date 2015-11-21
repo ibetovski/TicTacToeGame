@@ -1,4 +1,6 @@
 var Backbone = require('Backbone');
+var mediator = require('./mediator');
+
 var Winner = Backbone.View.extend({
 
   // we don't want Backbone to delete our real dom element on view.remove.
@@ -7,8 +9,17 @@ var Winner = Backbone.View.extend({
     return $('#winner-placeholder').find('div');
   },
   
-  initialize: function() {
+  initialize: function(options) {
+    options = options || {hasWinner: false};
     this.render();
+
+    var eventName = 'hasWinner';
+    
+    if (!options.hasWinner) {
+      eventName = 'noWinner';
+    }
+
+    mediator.trigger(eventName);
   },
 
   events: {

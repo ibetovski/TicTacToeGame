@@ -12659,6 +12659,8 @@ return jQuery;
 }));
 
 },{}],4:[function(require,module,exports){
+arguments[4][2][0].apply(exports,arguments)
+},{"dup":2}],5:[function(require,module,exports){
 _.templateSettings = {
   evaluate: /\{\{(.+?)\}\}/g,
   interpolate: /\{\{=(.+?)\}\}/g,
@@ -12674,6 +12676,7 @@ var PlayersCollection = require('./players.collection');
 var Collection = require('./board.collection');
 var BoardView = require('./board.view');
 var PlayersView = require('./players.view');
+var Audio = require('./audio');
 
 var router = new Router();
 
@@ -12706,7 +12709,38 @@ router.on('route:play' , function(){
 });
 
 Backbone.history.start();
-},{"./board.collection":5,"./board.view":6,"./cell.model":7,"./players.collection":9,"./players.view":10,"./router":11,"Backbone":1}],5:[function(require,module,exports){
+},{"./audio":6,"./board.collection":7,"./board.view":8,"./cell.model":9,"./players.collection":12,"./players.view":13,"./router":14,"Backbone":1}],6:[function(require,module,exports){
+var mediator = require('./mediator');
+
+var sounds = {
+  sounds: {
+    click: new Audio('./audio/click.wav'),
+    hasWinner: new Audio('./audio/has_winner.wav'),
+    noWinner: new Audio('./audio/no_winner.wav')
+  },
+
+  play: function(name) {
+    this.sounds[name].play();
+  },
+
+  init: function() {
+    mediator.on('click', function() {
+      this.play('click');
+    }, this);
+
+    mediator.on('hasWinner', function() {
+      this.play('hasWinner');
+    }, this);
+
+    mediator.on('noWinner', function() {
+      this.play('noWinner');
+    }, this);
+  }
+}
+
+sounds.init();
+module.exports = sounds;
+},{"./mediator":10}],7:[function(require,module,exports){
 var Backbone = require('Backbone');
 var Cell = require('./cell.model');
 
@@ -12925,9 +12959,11 @@ var Board = Backbone.Collection.extend({
 });
 
 module.exports = Board;
-},{"./cell.model":7,"Backbone":1}],6:[function(require,module,exports){
+},{"./cell.model":9,"Backbone":1}],8:[function(require,module,exports){
 var Backbone = require('Backbone');
 var WinnerView = require('./winner.view');
+var mediator = require('./mediator');
+
 var Board = Backbone.View.extend({
   // id: 'main',
   el: function() {
@@ -12936,6 +12972,7 @@ var Board = Backbone.View.extend({
   },
 
   initialize: function(options) {
+
     if (typeof options.players != 'undefined' && !options.players.isPristine) {
       this.players = options.players;
     } else {
@@ -12966,17 +13003,15 @@ var Board = Backbone.View.extend({
   initializeWinnerView: function(options) {
     options = options || {hasWinner: false};
 
-    var viewOptions = {};
-
     if (options.hasWinner) {
       var winnerModels = this.players.filter(function(item) {
         return item.get('isOnTurn') === true;
       });
-      viewOptions.model = winnerModels[0];
+      options.model = winnerModels[0];
     }
 
 
-    var winnerView = new WinnerView(viewOptions);
+    var winnerView = new WinnerView(options);
 
     this.listenTo(winnerView, 'playAgain', function() {
       this.collection.clean();
@@ -12992,6 +13027,7 @@ var Board = Backbone.View.extend({
     e.preventDefault();
     var cellNumber = $(e.target).data('index');
     this.collection.fill(cellNumber);
+    mediator.trigger('click');
   },
 
   template: _.template($('#boardTemplate').html()),
@@ -13005,7 +13041,7 @@ var Board = Backbone.View.extend({
 });
 
 module.exports = Board;
-},{"./winner.view":12,"Backbone":1}],7:[function(require,module,exports){
+},{"./mediator":10,"./winner.view":15,"Backbone":1}],9:[function(require,module,exports){
 var Backbone = require('Backbone');
 
 var strings = ['O', 'X'];
@@ -13044,7 +13080,15 @@ var Cell = Backbone.Model.extend({
 });
 
 module.exports = Cell;
-},{"Backbone":1}],8:[function(require,module,exports){
+},{"Backbone":1}],10:[function(require,module,exports){
+var Backbone = require('Backbone');
+var _ = require('underscore');
+
+var Mediator = {};
+_.extend(Mediator, Backbone.Events);
+
+module.exports = Mediator;
+},{"Backbone":1,"underscore":4}],11:[function(require,module,exports){
 var Backbone = require('Backbone');
 
 var PlayersModel = Backbone.Model.extend({
@@ -13065,7 +13109,7 @@ var PlayersModel = Backbone.Model.extend({
 });
 
 module.exports = PlayersModel;
-},{"Backbone":1}],9:[function(require,module,exports){
+},{"Backbone":1}],12:[function(require,module,exports){
 var Backbone = require('Backbone');
 var Model = require('./player.model');
 
@@ -13088,7 +13132,7 @@ var PlayersCollection = Backbone.Collection.extend({
 });
 
 module.exports = PlayersCollection;
-},{"./player.model":8,"Backbone":1}],10:[function(require,module,exports){
+},{"./player.model":11,"Backbone":1}],13:[function(require,module,exports){
 var Backbone = require('Backbone');
 var Players = Backbone.View.extend({
 
@@ -13134,7 +13178,7 @@ var Players = Backbone.View.extend({
 });
 
 module.exports = Players;
-},{"Backbone":1}],11:[function(require,module,exports){
+},{"Backbone":1}],14:[function(require,module,exports){
 var Backbone = require('Backbone');
 
 var Router = Backbone.Router.extend({
@@ -13146,8 +13190,10 @@ var Router = Backbone.Router.extend({
 });
 
 module.exports = Router;
-},{"Backbone":1}],12:[function(require,module,exports){
+},{"Backbone":1}],15:[function(require,module,exports){
 var Backbone = require('Backbone');
+var mediator = require('./mediator');
+
 var Winner = Backbone.View.extend({
 
   // we don't want Backbone to delete our real dom element on view.remove.
@@ -13156,8 +13202,17 @@ var Winner = Backbone.View.extend({
     return $('#winner-placeholder').find('div');
   },
   
-  initialize: function() {
+  initialize: function(options) {
+    options = options || {hasWinner: false};
     this.render();
+
+    var eventName = 'hasWinner';
+    
+    if (!options.hasWinner) {
+      eventName = 'noWinner';
+    }
+
+    mediator.trigger(eventName);
   },
 
   events: {
@@ -13184,4 +13239,4 @@ var Winner = Backbone.View.extend({
 
 
 module.exports = Winner;
-},{"Backbone":1}]},{},[4]);
+},{"./mediator":10,"Backbone":1}]},{},[5]);

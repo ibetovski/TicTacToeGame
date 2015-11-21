@@ -13,6 +13,7 @@ var PlayersCollection = require('./players.collection');
 var Collection = require('./board.collection');
 var BoardView = require('./board.view');
 var PlayersView = require('./players.view');
+var Audio = require('./audio');
 
 var router = new Router();
 

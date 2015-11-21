@@ -1,5 +1,7 @@
 var Backbone = require('Backbone');
 var WinnerView = require('./winner.view');
+var mediator = require('./mediator');
+
 var Board = Backbone.View.extend({
   // id: 'main',
   el: function() {
@@ -8,6 +10,7 @@ var Board = Backbone.View.extend({
   },
 
   initialize: function(options) {
+
     if (typeof options.players != 'undefined' && !options.players.isPristine) {
       this.players = options.players;
     } else {
@@ -38,17 +41,15 @@ var Board = Backbone.View.extend({
   initializeWinnerView: function(options) {
     options = options || {hasWinner: false};
 
-    var viewOptions = {};
-
     if (options.hasWinner) {
       var winnerModels = this.players.filter(function(item) {
         return item.get('isOnTurn') === true;
       });
-      viewOptions.model = winnerModels[0];
+      options.model = winnerModels[0];
     }
 
 
-    var winnerView = new WinnerView(viewOptions);
+    var winnerView = new WinnerView(options);
 
     this.listenTo(winnerView, 'playAgain', function() {
       this.collection.clean();
@@ -64,6 +65,7 @@ var Board = Backbone.View.extend({
     e.preventDefault();
     var cellNumber = $(e.target).data('index');
     this.collection.fill(cellNumber);
+    mediator.trigger('click');
   },
 
   template: _.template($('#boardTemplate').html()),
