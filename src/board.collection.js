@@ -150,10 +150,10 @@ var Board = Backbone.Collection.extend({
    * Tell the matching cells they won.
    * @return {Void}
    */
-  notifyWinnerCells: function() {
-    for (i = 0; i < this.matchingIds.length; i++) {
-      this.get(this.matchingIds[i]).trigger('winner');
-    }
+  notifyWinnerCells: function(ids) {
+    ids.forEach(function(id) {
+      this.get(id).trigger('winner');
+    }, this);
   },
 
   /**
@@ -162,56 +162,28 @@ var Board = Backbone.Collection.extend({
    * @return {Boolean}        If there is a winner or not
    */
   checkPerList: function(patterns) {
-    var matchCount = 0;
-    var prevSign = null;
-    var ids;
-    var id;
-
-
     // iterate the list of arrays
     for (var i = 0; i < patterns.length; i++) {
-      // if we have 3 matches from the inner loop, STOP
-      if (matchCount === 3) {
+
+      // if there is a winner, STOP
+      if (this.hasWinner) {
         break;
       }
 
-      ids = patterns[i];
-      matchingIds = [];
-      matchCount = 0;
+      // will be true if every item matches the requirements.
+      this.hasWinner = patterns[i].every(function(id, index, ids) {
+        return !this.get(id).get('isEmpty') &&
+          this.get(id).get('sign') === this.get(ids[0]).get('sign');
+      }, this);
 
-      // iterate every id.
-      for (var j = 0; j < ids.length; j++) {
-        id = ids[j];
-
-        // if the cell is empty don't go to the other pattern (3 ids.)
-        if (this.get(id).get('isEmpty')) {
-          break;
-        }
-
-        // keep the first sign.
-        if (j === 0 && !this.get(id).get('isEmpty')) {
-          prevSign = this.get(id).get('sign');
-          ++matchCount;
-        } else if(!this.get(id).get('isEmpty')) {
-          // when there are 3 matches, STOP
-          if (this.get(id).get('sign') === prevSign) {
-            if (++matchCount === 3) {
-              matchingIds = patterns[i];
-              break;
-            }
-          }
-
-          prevSign = this.get(id).get('sign');
-        }
+      if (this.hasWinner) {
+        // notify whoever is concerned
+        this.notifyWinnerCells(patterns[i]);
       }
     }
 
-    // notify whoever is concerned
-    if (matchingIds.length === 3) {
-      this.matchingIds = matchingIds;
-      this.notifyWinnerCells();
-      return this.hasWinner = true;
-    }
+    return this.hasWinner;
+
   }
 });
 
