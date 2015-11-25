@@ -2,6 +2,7 @@
 This game is developed with Test-Driven Development using BackboneJS and SinonJS.
 It should be played by two players.
 
+Check a [live demo](http://ibetovski.github.io/ "Live demo of TicTacToeGame").
 
 ## Installation.
 ```
