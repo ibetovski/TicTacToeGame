@@ -26,13 +26,21 @@ var Players = Backbone.View.extend({
     // sets player's name and his sign
     this.$el.find('input[name]').each(function(index) {
       if (index < 2) {
-        collection.get(index).set('name', this.value);
+        if (this.value.length === 0) {
+          alert('Please enter names for both players');
+          return;
+        }
+
+        collection.get(index).set('name', _.escape(this.value));
         collection.get(index).set('sign', index);
       }
     });
 
-    // start playing :)
-    window.location.hash = "play";
+    if (collection.get(0).get('name').length > 0 && collection.get(1).get('name').length) {
+      // start playing :)
+      window.location.hash = "play";
+    }
+
   },
 
   template: _.template($('#playersTemplate').html()),
