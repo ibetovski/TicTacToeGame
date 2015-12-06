@@ -8,38 +8,47 @@
 
   <script type="text/template" id="playersTemplate">
     <div class="scene">
-    <h1>TicTacToe game</h1>
-    <p>Hello my friends.</p>
-    <p>Do you want to play a game? Please enter you names here and let the fun starts.</p>
+      <p>Hello my friends.</p>
+      <p>Do you want to play a game? Please enter you names here and let the fun starts.</p>
       <form>
-        <label for="player1name">Player 1 name:</label>
-        <input type="text" name="player1name" value="" autofocus/>
+        <div class="player-column player1">
+          <input type="text" name="player1name" value="" placeholder="Player 1 name" autofocus/>
+        </div>
 
-        <label for="player2name">Player 2 name:</label>
-        <input type="text" name="player2name" value="" />
+        <div class="player-column player2">
+          <input type="text" name="player2name" value="" placeholder="Player 1 name" />
+        </div>
 
         <button type="submit">Start</button>
       </form>
     </div>
   </script>
 
+  <script type="text/template" id="playerNamesTemplate">
+    <div class="player-names">
+      {{_.each(players, function(player, index) { }}
+        {{ if (player.isOnTurn) { }}
+          <div class="on-turn">{{=player.name}}</div>
+        {{ } else { }}
+          <div>{{=player.name}}</div>
+        {{ } }}
+      {{ }); }}
+    </div>
+  </script>
+
   <script type="text/template" id="boardTemplate">
     <div class="scene">
-      <div class="player-names">
-        {{_.each(players, function(player, index) { }}
-          {{ if (player.isOnTurn) { }}
-            <div class="on-turn">&gt; {{=player.name}}</div>
-          {{ } else { }}
-            <div>{{=player.name}}</div>
-          {{ } }}
-        {{ }); }}
-      </div>
-
-      <div class="board-cells">
+      {{ if (isFirstRender) { }}
+        <div class="board-cells is-hidden">
+      {{ } else { }}
+        <div class="board-cells">
+      {{ } }}
         {{_.each(items, function(item, index) { }}
         <div class="cell player-{{=item.sign}} {{= item.isWinner ? 'winner' : ''}}" data-index="{{=index}}">{{=item.signString}}</div>
         {{ }); }}
       </div>
+
+
     </div>
   </script>
 
@@ -57,13 +66,23 @@
     </form>
   </script>
 
-  <div id="main">
+  <header>
+    <h1>Tic-Tac-Toe game</h1>
+  </header>
 
+  <div id="main-wrapper">
+    <!-- Player names //-->
+    <div id="playersNames"></div>
+    <div id="main"></div>
+    <div id="winner-placeholder"></div>
   </div>
-  <div id="winner-placeholder"></div>
+  <footer>
+    <a href="https://github.com/ibetovski/TicTacToeGame">Source code</a> by <a href="https://github.com/ibetovski">Iliyan Betovski</a>
+    <p><a href="http://ibetovski.github.io/test.html">You can run the tests</a></p>
+  </footer>
 
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.2.3/backbone-min.js"></script>
   <script type="text/javascript" src="./app.bundle.js"></script>
 </body>

@@ -21,10 +21,6 @@ var Board = Backbone.View.extend({
       this.render();
     });
 
-    this.listenTo(this.players, 'change', function() {
-      this.render();
-    });
-
     this.listenTo(this.collection, 'switchPlayers', function(nextPlayer) {
       this.players.trigger('switchPlayers', nextPlayer);
     });
@@ -35,7 +31,7 @@ var Board = Backbone.View.extend({
       this.initializeWinnerView(options);
     });
 
-    this.render();
+    this.render({isFirstRender: true});
   },
 
   initializeWinnerView: function(options) {
@@ -70,11 +66,20 @@ var Board = Backbone.View.extend({
 
   template: _.template($('#boardTemplate').html()),
 
-  render: function() {
+  render: function(options) {
+    options = options || {};
     this.$el.html(this.template({
       items: this.collection.toJSON(),
-      players: this.players.toJSON()
+      players: this.players.toJSON(),
+      isFirstRender: options.isFirstRender
     }));
+
+    // make the board appear with smooth transition at the first render.
+    if (options.isFirstRender) {
+      setTimeout(function() {
+        this.$('.board-cells').removeClass('is-hidden');
+      }.bind(this), 100);
+    }
   }
 });
 

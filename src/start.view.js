@@ -1,9 +1,10 @@
 var Backbone = require('Backbone');
-var Players = Backbone.View.extend({
+var StartView = Backbone.View.extend({
 
   el: function() {
-    $('#main').append('<div></div>');
-    return $('#main').find('div');
+    var container = $('<div></div>');
+    $('#main').append(container);
+    return container;
   },
 
   initialize: function() {
@@ -50,4 +51,4 @@ var Players = Backbone.View.extend({
   }
 });
 
-module.exports = Players;
+module.exports = StartView;

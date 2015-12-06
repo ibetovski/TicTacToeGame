@@ -12675,24 +12675,31 @@ var Model = require('./cell.model');
 var PlayersCollection = require('./players.collection');
 var Collection = require('./board.collection');
 var BoardView = require('./board.view');
-var PlayersView = require('./players.view');
+var StartView = require('./start.view');
+var PlayerNamesView = require('./playerNames.view');
 var Audio = require('./audio');
 
 var router = new Router();
 
 var playersCollection = new PlayersCollection();
 
-var playersView;
+var startView;
 var boardView;
+var playerNamesView;
 
 router.on('route:start' , function(){
-  playersView = new PlayersView({
+  startView = new StartView({
     collection: playersCollection
   });
 
   if (boardView != null) {
     boardView.remove();
     boardView = null;
+  }
+
+  if (playerNamesView != null) {
+    playerNamesView.remove();
+    playerNamesView = null;
   }
 });
 
@@ -12702,14 +12709,18 @@ router.on('route:play' , function(){
     players: playersCollection
   });
 
-  if (playersView != null) {
-    playersView.remove();
-    playersView = null;
+  playerNamesView = new PlayerNamesView({
+    collection: playersCollection
+  });
+
+  if (startView != null) {
+    startView.remove();
+    startView = null;
   }
 });
 
 Backbone.history.start();
-},{"./audio":6,"./board.collection":7,"./board.view":8,"./cell.model":9,"./players.collection":12,"./players.view":13,"./router":14,"Backbone":1}],6:[function(require,module,exports){
+},{"./audio":6,"./board.collection":7,"./board.view":8,"./cell.model":9,"./playerNames.view":12,"./players.collection":13,"./router":14,"./start.view":15,"Backbone":1}],6:[function(require,module,exports){
 var mediator = require('./mediator');
 
 var sounds = {
@@ -12955,10 +12966,6 @@ var Board = Backbone.View.extend({
       this.render();
     });
 
-    this.listenTo(this.players, 'change', function() {
-      this.render();
-    });
-
     this.listenTo(this.collection, 'switchPlayers', function(nextPlayer) {
       this.players.trigger('switchPlayers', nextPlayer);
     });
@@ -12969,7 +12976,7 @@ var Board = Backbone.View.extend({
       this.initializeWinnerView(options);
     });
 
-    this.render();
+    this.render({isFirstRender: true});
   },
 
   initializeWinnerView: function(options) {
@@ -13004,16 +13011,25 @@ var Board = Backbone.View.extend({
 
   template: _.template($('#boardTemplate').html()),
 
-  render: function() {
+  render: function(options) {
+    options = options || {};
     this.$el.html(this.template({
       items: this.collection.toJSON(),
-      players: this.players.toJSON()
+      players: this.players.toJSON(),
+      isFirstRender: options.isFirstRender
     }));
+
+    // make the board appear with smooth transition at the first render.
+    if (options.isFirstRender) {
+      setTimeout(function() {
+        this.$('.board-cells').removeClass('is-hidden');
+      }.bind(this), 100);
+    }
   }
 });
 
 module.exports = Board;
-},{"./mediator":10,"./winner.view":15,"Backbone":1}],9:[function(require,module,exports){
+},{"./mediator":10,"./winner.view":16,"Backbone":1}],9:[function(require,module,exports){
 var Backbone = require('Backbone');
 
 var strings = ['O', 'X'];
@@ -13083,6 +13099,36 @@ var PlayersModel = Backbone.Model.extend({
 module.exports = PlayersModel;
 },{"Backbone":1}],12:[function(require,module,exports){
 var Backbone = require('Backbone');
+var PlayerNamesView = Backbone.View.extend({
+
+  el: function() {
+    var container = $('<div></div>');
+    $('#playersNames').append(container);
+    return container;
+  },
+
+  initialize: function() {
+    this.listenTo(this.collection, 'change', function(model) {
+      if (!model.get('isOnTurn')) {
+        this.$('.player-names div:nth-child(' + (model.id + 1) + ')').removeClass('on-turn');
+      } else {
+        this.$('.player-names div:nth-child(' + (model.id + 1) + ')').addClass('on-turn');
+      }
+    });
+
+    this.render();
+  },
+
+  template: _.template($('#playerNamesTemplate').html()),
+
+  render: function() {
+    this.$el.html(this.template({players: this.collection.toJSON()}));
+  }
+});
+
+module.exports = PlayerNamesView;
+},{"Backbone":1}],13:[function(require,module,exports){
+var Backbone = require('Backbone');
 var Model = require('./player.model');
 
 var PlayersCollection = Backbone.Collection.extend({
@@ -13104,13 +13150,26 @@ var PlayersCollection = Backbone.Collection.extend({
 });
 
 module.exports = PlayersCollection;
-},{"./player.model":11,"Backbone":1}],13:[function(require,module,exports){
+},{"./player.model":11,"Backbone":1}],14:[function(require,module,exports){
 var Backbone = require('Backbone');
-var Players = Backbone.View.extend({
+
+var Router = Backbone.Router.extend({
+  routes: {
+    "": 'start',
+    "start": 'start',
+    "play": 'play'
+  }
+});
+
+module.exports = Router;
+},{"Backbone":1}],15:[function(require,module,exports){
+var Backbone = require('Backbone');
+var StartView = Backbone.View.extend({
 
   el: function() {
-    $('#main').append('<div></div>');
-    return $('#main').find('div');
+    var container = $('<div></div>');
+    $('#main').append(container);
+    return container;
   },
 
   initialize: function() {
@@ -13157,20 +13216,8 @@ var Players = Backbone.View.extend({
   }
 });
 
-module.exports = Players;
-},{"Backbone":1}],14:[function(require,module,exports){
-var Backbone = require('Backbone');
-
-var Router = Backbone.Router.extend({
-  routes: {
-    "": 'start',
-    "start": 'start',
-    "play": 'play'
-  }
-});
-
-module.exports = Router;
-},{"Backbone":1}],15:[function(require,module,exports){
+module.exports = StartView;
+},{"Backbone":1}],16:[function(require,module,exports){
 var Backbone = require('Backbone');
 var mediator = require('./mediator');
 

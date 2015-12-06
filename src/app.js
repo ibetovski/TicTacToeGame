@@ -12,24 +12,31 @@ var Model = require('./cell.model');
 var PlayersCollection = require('./players.collection');
 var Collection = require('./board.collection');
 var BoardView = require('./board.view');
-var PlayersView = require('./players.view');
+var StartView = require('./start.view');
+var PlayerNamesView = require('./playerNames.view');
 var Audio = require('./audio');
 
 var router = new Router();
 
 var playersCollection = new PlayersCollection();
 
-var playersView;
+var startView;
 var boardView;
+var playerNamesView;
 
 router.on('route:start' , function(){
-  playersView = new PlayersView({
+  startView = new StartView({
     collection: playersCollection
   });
 
   if (boardView != null) {
     boardView.remove();
     boardView = null;
+  }
+
+  if (playerNamesView != null) {
+    playerNamesView.remove();
+    playerNamesView = null;
   }
 });
 
@@ -39,9 +46,13 @@ router.on('route:play' , function(){
     players: playersCollection
   });
 
-  if (playersView != null) {
-    playersView.remove();
-    playersView = null;
+  playerNamesView = new PlayerNamesView({
+    collection: playersCollection
+  });
+
+  if (startView != null) {
+    startView.remove();
+    startView = null;
   }
 });
 
