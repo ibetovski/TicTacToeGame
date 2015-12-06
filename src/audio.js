@@ -2,7 +2,7 @@ var mediator = require('./mediator');
 
 var sounds = {
   sounds: {
-    click: new Audio('./audio/click.wav'),
+    click: new Audio('./audio/chalk.mp3'),
     // this is fn because of the volume control
     hasWinner: (function() {
       var audio = new Audio('./audio/has_winner.wav');
