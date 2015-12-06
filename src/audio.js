@@ -9,7 +9,14 @@ var sounds = {
       audio.volume = 0.1;
       return audio
     })(),
-    noWinner: new Audio('./audio/no_winner.wav'),
+
+    // volume too.
+    noWinner: (function() {
+      var audio = new Audio('./audio/no_winner.wav');
+      audio.volume = 0.1;
+      return audio;
+    })(),
+
     flip: new Audio('./audio/flip.wav')
   },
 
