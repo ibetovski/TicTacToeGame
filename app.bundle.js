@@ -12726,8 +12726,14 @@ var mediator = require('./mediator');
 var sounds = {
   sounds: {
     click: new Audio('./audio/click.wav'),
-    hasWinner: new Audio('./audio/has_winner.wav'),
-    noWinner: new Audio('./audio/no_winner.wav')
+    // this is fn because of the volume control
+    hasWinner: (function() {
+      var audio = new Audio('./audio/has_winner.wav');
+      audio.volume = 0.1;
+      return audio
+    })(),
+    noWinner: new Audio('./audio/no_winner.wav'),
+    flip: new Audio('./audio/flip.wav')
   },
 
   play: function(name) {
@@ -12745,6 +12751,10 @@ var sounds = {
 
     mediator.on('noWinner', function() {
       this.play('noWinner');
+    }, this);
+
+    mediator.on('flip', function() {
+      this.play('flip');
     }, this);
   }
 }
@@ -13002,6 +13012,8 @@ var Board = Backbone.View.extend({
 
       // start flipping.
       this.$('.board-cells').addClass('is-flipping');
+
+      mediator.trigger('flip');
             
       // wait little bit and start a new game.
       setTimeout(function() {

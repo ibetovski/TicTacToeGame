@@ -57,6 +57,8 @@ var Board = Backbone.View.extend({
 
       // start flipping.
       this.$('.board-cells').addClass('is-flipping');
+
+      mediator.trigger('flip');
             
       // wait little bit and start a new game.
       setTimeout(function() {
