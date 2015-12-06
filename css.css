@@ -63,7 +63,7 @@ div.board-cells {
   margin: 0 auto;
   margin-top: 0;
   opacity: 1;
-  transition: opacity 1000ms, margin-top 500ms, width 500ms, height 500ms;
+  transition: opacity 1000ms, margin-top 500ms, width 500ms, height 500ms, transform 500ms;
 }
 
 div.board-cells.is-hidden {
@@ -71,6 +71,12 @@ div.board-cells.is-hidden {
   height: 500px;
   opacity: 0;
   margin-top: -100px;
+}
+
+div.board-cells.is-flipping {
+  transform: rotateY(180deg);
+  transform-style: preserve-3d;
+  position: relative;
 }
 
 div.cell {
@@ -107,7 +113,7 @@ div.player-names div {
   box-sizing: border-box;
   line-height: 30px;
   opacity: 0.3;
-  transition: width 500ms, opacity 500ms, font-size 1s;
+  transition: width 300ms, opacity 500ms, font-size 500ms;
 }
 
 div.player-names div:first-child {
@@ -127,7 +133,6 @@ div.player-names div.on-turn {
   font-size: 30px;
   text-align: center;
   opacity: 1;
-  color: white;
 }
 
 .player-0 {

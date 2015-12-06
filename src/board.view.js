@@ -48,8 +48,20 @@ var Board = Backbone.View.extend({
     var winnerView = new WinnerView(options);
 
     this.listenTo(winnerView, 'playAgain', function() {
-      this.collection.clean();
       winnerView.remove();
+
+      // clean the cell content before rotating the board.
+      this.$('.cell').each(function() {
+        this.innerHTML = '';
+      });
+
+      // start flipping.
+      this.$('.board-cells').addClass('is-flipping');
+            
+      // wait little bit and start a new game.
+      setTimeout(function() {
+        this.collection.clean();
+      }.bind(this), 500);
     });
   },
 
