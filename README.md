@@ -1,4 +1,7 @@
 ## TicTacToe Game
+
+![](https://github.com/ibetovski/TicTacToeGame/blob/master/screenshot.png?raw=true)
+
 This game is developed with Test-Driven Development using BackboneJS and SinonJS.
 It should be played by two players.
 
